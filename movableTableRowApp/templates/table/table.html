@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Table</title>
+    <link href="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.8/rr-1.4.1/datatables.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/v/dt/jq-3.7.0/dt-1.13.8/rr-1.4.1/datatables.min.js"></script>
+</head>
+<body>
+    <a href="{% url 'mainView' %}">Wróć do głównej strony</a>
+    <h1 style="text-align: center">
+        Moja tabela
+    </h1>
+    <div style="text-align: right">
+        <button id="savePositionsButton">Zapisz pozycje</button>
+    </div>
+    <div style="margin-top: 5rem">
+        <div id="myTableContainer" style="margin-inline: 2rem">
+            <table id="myTable" class="display cell-border nowrap" style="width: 100%; text-align: center">
+                <thead>
+                    <tr>
+                        <th width="5%">Pozycja</th>
+                        <th width="10%">Id</th>
+                        <th width="45%">Nazwa</th>
+                        <th width="20%">Cena</th>
+                        <th width="20%">Ilosc</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>{{ product.position }}</td>
+                            <td>{{ product.id }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.price }}</td>
+                            <td>{{ product.quantity }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    let csrf_token = "{{ csrf_token }}";
+    let myTable;
+    $(document).ready(function() {
+        myTable = $('#myTable').DataTable({
+            tableId: 'myTable',
+            paging: true, //stronicowanie
+            pageLength: 10,
+            lengthChange: true, //change number of elements in page
+            lengthMenu: [[10, 20, 25, 50, 100, -1], [10, 20, 25, 50, 100, 'Wszystkie']],
+            //autoWidth: true,
+            searching: true,
+            bInfo: true, //info about number of elements in page
+            bSort: true,
+            orderCellsTop: true,
+            responsive: true,
+            rowReorder: true,
+            {% comment %}rowReorder: {
+                selector: 'td:nth-child(1)',
+                update: true,
+            },{% endcomment %}
+            //rowReorder: { selector: 'td:nth-child(5)' },
+            dom: 'lftip',
+            language: {
+                lengthMenu: "Pokaż _MENU_ wydarzeń",
+                search: "Wyszukiwarka: ",
+                paginate: {
+                    previous: "Poprzednia ",
+                    next: "Następna"
+                },
+                info: "Pokazuje _START_ do _END_ z _TOTAL_",
+                infoFiltered: " (wyfiltrowano z _MAX_ wszystkich rekordów)",
+                zeroRecords: "Brak pasującyh produktów.",
+                infoEmpty: "Nie znaleziono żadny pasującyh produktów.",
+            },
+
+            initComplete: function () {
+                $('#savePositionsButton').on('click', function () {
+                    let tableData = myTable.rows().data().toArray();
+                    console.log("table data = ", tableData)
+                    {% comment %}let indexPositionPairs = {};
+                    for (let i = 0; i < tableData.length; i++) {
+                        indexPositionPairs[tableData[i][0]] = parseInt(tableData[i][1]);
+                    }
+                    console.log("Pozycje to = ", indexPositionPairs){% endcomment %}
+                    let products = [];
+                    for (let i = 0; i < tableData.length; i++) {
+                        let row = tableData[i];
+                        let product = {
+                            position: row[0],
+                            index: row[1]
+                        };
+                        products.push(product);
+                    }
+                    console.log("Pozycje to = ", products)
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/savePositions/',
+                        headers: {
+                            'X-CSRFToken': csrf_token
+                        },
+                        data: JSON.stringify({ products: products }),
+                        success: function (response) {
+                            if (response.success) {
+                                console.log('Positions saved successfully');
+                                // You can also add any additional logic here, such as showing a success message
+                            } else {
+                                console.error('Error saving positions:', response.error);
+                                // You can handle the error here, for example, show an error message
+                            }
+                        },
+                        error: function (error) {
+                            console.error('Error saving positions:', error);
+                        }
+                    });
+                });
+            }
+        });
+    });
+</script>
