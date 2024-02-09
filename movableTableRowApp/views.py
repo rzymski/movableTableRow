@@ -16,7 +16,7 @@ def mainTable(request):
 
 
 def savePositions(request):
-    # print("Zapisano pozycje")
+    # print("Zapisano zmiane pozycji")
     if request.method == 'POST':
         try:
             # print("POST = ", request.POST)
