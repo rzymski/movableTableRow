@@ -16,7 +16,7 @@ def mainTable(request):
 
 
 def savePositions(request):
-    # print("Zapisano pozycje")
+    # print("Zapisano zmiane pozycji")
     if request.method == 'POST':
         try:
             # print("POST = ", request.POST)
@@ -26,7 +26,7 @@ def savePositions(request):
                 for product in products:
                     index = product.get('index')
                     position = product.get('position')
-                    print(f'Index: {index}, Position: {position}')
+                    # print(f'Index: {index}, Position: {position}')
                     product = Product.objects.get(id=index)
                     product.position = position
                     product.save()
